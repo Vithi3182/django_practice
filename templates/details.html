@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Details</title>
+</head>
+<body>
+    <img src="{{dest.img.url}}">
+    <h3>{{dest.name}}</h3><br>
+    <h4>{{dest.desc|safe}}</h4><br>
+    <h4>Total travel cost per person for a week :{{dest.price}}</h4><br>
+
+    <h3>Comments:</h3>
+    <form method="POST" action="">
+        {% csrf_token %}
+        <!-- <label for="username">Name:</label><br>
+        <input type="text" id="username" name="username" required><br><br> -->
+
+        <label for="comment">Comment: {{ comments.count}} </label><br>
+        
+        <textarea id="comment" name="comment" rows="4" cols="50" required></textarea><br><br>
+
+        <button type="submit">Comment</button>
+    </form>
+
+    <!-- Display Comments -->
+    <div id="comments-section">
+        {% for comment in comments %}
+            <div class="comment">
+                <!-- <h4>{{ comment.username }}</h4> -->
+                <p>{{ comment.comment }}   </p>
+                <p style="text-align:right">{{comment.user}}   {{comment.create_at}}</p>
+                <p><strong>Replies:</strong> {{ comment.reply_count }}</p>
+                <button id="like-button-{{ comment.id }}" class="like-button" onclick="toggleLike({{ comment.id }})">
+                    ❤️ <span id="like-count-{{ comment.id }}">{{ comment.like_count }}</span>
+                </button>
+                <button type="button" onclick="toggleReplyForm({{ comment.id }})">Reply</button>
+                <form id="reply-form-{{ comment.id }}" class="reply-form" method="POST" action="" style="display:none;">
+                    {% csrf_token %}
+                    <textarea name="comment" rows="2" cols="50" required></textarea>
+                    <!-- <input type="hidden" name="parent_id" value="{{ parent_comment.id }}" /> -->
+
+                    <input type="hidden" name="parent_id" value="{{ comment.id }}">
+                    <button type="submit">Reply</button>
+                </form>
+                {% for reply in comment.replies.all %}
+                    <div style="margin-left: 20px;">
+                        <p>{{ reply.comment }}</p>
+                        <button id="like-button-{{ reply.id }}" class="like-button" onclick="toggleLike({{ reply.id }})">
+                            ❤️ <span id="like-count-{{ reply.id }}">{{ reply.like_count }}</span>
+                        </button>
+                        <p style="text-align:right">{{ reply.user }} {{ reply.create_at }}</p>
+                    </div>
+                {% endfor %}
+                <hr>
+                {% if messages %}
+                <div id="popup-message" class="popup">
+                    <div class="popup-content">
+                        {% for message in messages %}
+                            <p>{{ message }}</p>
+                        {% endfor %}
+                        <button onclick="closePopup()">OK</button>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        <!-- {% empty %}
+            <p>No comments yet. Be the first to share your thoughts!</p>
+        {% endfor %} -->
+        <style>
+            .popup {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.5);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 1000;
+            }
+            .popup-content {
+                background: white;
+                padding: 20px;
+                border-radius: 8px;
+                text-align: center;
+            }
+            button {
+                margin-top: 10px;
+                padding: 8px 16px;
+                background-color: #007bff;
+                color: white;
+                border: none;
+                border-radius: 4px;
+            }
+        </style>
+    
+        <script>
+            function toggleReplyForm(commentId) {
+                const form = document.getElementById(`reply-form-${commentId}`);
+                form.style.display = form.style.display === "none" ? "block" : "none";
+            }
+            function toggleLike(commentId) {
+                const likeButton = document.getElementById(`like-button-${commentId}`);
+                const likeCountSpan = document.getElementById(`like-count-${commentId}`);
+                let currentCount = parseInt(likeCountSpan.textContent);
+
+                // Toggle color and like count
+                if (likeButton.classList.contains("liked")) {
+                    likeButton.classList.remove("liked");
+                    likeCountSpan.textContent = currentCount - 1;
+                } else {
+                    likeButton.classList.add("liked");
+                    likeCountSpan.textContent = currentCount + 1;
+                }
+
+                // Send an AJAX request to update the like count on the server
+                fetch(`/like-comment/${commentId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}',
+                        'Content-Type': 'application/json'
+                    }
+                }).catch(error => console.error('Error:', error));
+            }
+            function closePopup() {
+                document.getElementById('popup-message').style.display = 'none';
+            }
+          
+        </script>
+</body>
+</html>
