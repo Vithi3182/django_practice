@@ -64,4 +64,7 @@ def register(request):
     
 def logout(request):
     auth.logout(request)
+    if 'viewed_destinations' in request.session:
+        del request.session['viewed_destinations']
+    # return redirect('home')
     return redirect('/')

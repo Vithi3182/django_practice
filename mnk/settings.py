@@ -51,6 +51,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    'calc.destination_middleware.TrackUnauthenticatedViewsMiddleware',
 ]
 
 ROOT_URLCONF = "mnk.urls"
@@ -136,3 +137,4 @@ MEDIA_ROOT = os.path.join(BASE_DIR,'media')
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'

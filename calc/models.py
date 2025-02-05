@@ -19,3 +19,9 @@ class Comments(models.Model):
     like_count = models.PositiveIntegerField(default=0)
     liked_users = models.ManyToManyField(User, related_name='liked_comments', blank=True)
     
+class IPViewTracking(models.Model):
+    ip_address = models.GenericIPAddressField(unique=True)
+    viewed_destinations = models.JSONField(default=list)
+
+    def __str__(self):
+        return self.ip_address

@@ -8,25 +8,23 @@ from django.contrib import messages
 
 # Create your views here.
 def index(request):
-    
+    # request.session['viewed_destinations'] = []
     dests = Destination.objects.all()
     return render(request,'index.html',{'dests':dests})
+
+def get_client_ip(request):
+    """Utility function to get client IP address."""
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(',')[0]
+    else:
+        ip = request.META.get('REMOTE_ADDR')
+    return ip
 
 # @login_required
 def details(request,id):
     dest = get_object_or_404(Destination,pk=id)
-    
-    if 'visited_destinations' not in request.session:
-        request.session['visited_destinations'] = []
 
-    if len(request.session['visited_destinations']) >= 2 and not request.user.is_authenticated:    
-        messages.error(request, "Please login or register to access more destinations!")
-        return render(request,'register.html')
-        
-       
-    if id not in request.session['visited_destinations']:
-        request.session['visited_destinations'].append(id)
-        request.session.modified = True
                  
     all_comment = Comments.objects.filter(destination_name=dest)
     for comment in all_comment:
@@ -47,7 +45,7 @@ def details(request,id):
 
     return render(request,'details.html',{'dest':dest,'comments':all_comment})
 
-@csrf_exempt
+# @csrf_exempt
 @login_required
 def like_comment(request, comment_id):
     if request.method == 'POST':
